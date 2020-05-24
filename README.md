@@ -2,6 +2,11 @@
 
 The package allows you to make model filter by user request in 1 line, you just need to use the MarksIhor\LaravelFiltering\Filterable trait in your Controller.php (or whatever your controller you need the filter to work).
 
+## Installing
+
+```shell
+$ composer require marksihor/laravel-filtering -vvv
+```
 
 ## Usage
 
