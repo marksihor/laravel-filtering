@@ -17,7 +17,7 @@ $ composer require marksihor/laravel-filtering -vvv
 
 namespace App\Http\Controllers;
 
-use MarksIhor\LaravelMessaging\Filterable;
+use MarksIhor\LaravelFoltering\Filterable;
 
 class User extends Authenticatable
 {
