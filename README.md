@@ -19,7 +19,7 @@ namespace App\Http\Controllers;
 
 use MarksIhor\LaravelFiltering\Filterable;
 
-class User extends Authenticatable
+class Controller
 {
     use Filterable;
 }
