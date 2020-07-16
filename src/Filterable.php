@@ -11,6 +11,7 @@ trait Filterable
 {
     private $rawParams = [];
     private $filterable = null;
+    private $prefix = '';
 
     public function filterable(array $columns)
     {
@@ -29,18 +30,26 @@ trait Filterable
 
         foreach ($queryParams as $key => $value) {
             if (strpos($key, '->') !== false || strpos($key, '__') !== false) {
+                // to filter json columns
                 $delimiter = strpos($key, '->') !== false ? '->' : '__';
                 $column = strtok($key, $delimiter);
                 if ($this->canFilterColumn($model, $column, $filterableColumns)) {
-                    if (is_string($value)) $this->keyValueFilter($builder, str_replace($delimiter, '->', $key), $value);
+                    if (is_string($value)) {
+                        $this->keyValueFilter($builder, str_replace($delimiter, '->', $key), $value);
+                    }
                 }
             } elseif ($key === 'with') {
+                // to load specified related models
                 $this->withRelations($builder, $value);
             } elseif ($this->canFilterColumn($model, $key, $filterableColumns)) {
-                if (is_array($value))
+                // key value filter
+                if (is_array($value)) {
                     $this->arrayParamsFilter($builder, $key, $value);
-                else
+                } else {
                     $this->keyValueFilter($builder, $key, $value);
+                }
+            } elseif (!$this->isColumnExist($model, $key) && $this->isRelationshipExists($model, $key)) {
+                $this->relationshipFilter($builder, $key, $value);
             }
         }
 
@@ -69,14 +78,18 @@ trait Filterable
         return Schema::hasColumn($model->getTable(), $column);
     }
 
+    private function isRelationshipExists(Model $model, string $relation): bool
+    {
+        return (!isset($model::$publicRelations) ||
+                in_array($relation, $model::$publicRelations)) &&
+            method_exists($model, $relation);
+    }
+
     private function withRelations($query, $relations)
     {
         $model = $query->getModel();
         foreach (explode(',', $relations) as $relation) {
-            if (
-                (!isset($model::$publicRelations) || in_array($relation, $model::$publicRelations)) &&
-                method_exists($model, $relation)
-            ) {
+            if ($this->isRelationshipExists($model, $relation)) {
                 $query = $query->with([$relation => function ($query) {
                     $model = $query->getModel();
                     $query->select($model::$publicFields ?? '*');
@@ -87,23 +100,27 @@ trait Filterable
 
     private function arrayParamsFilter(Builder $builder, string $key, array $value): void
     {
+        $table = $this->getTableName($builder);
+
         if (isset($value['from'], $value['to'])) {
-            $builder->whereBetween($key, [$value['from'], $value['to']]);
+            $builder->whereBetween($table . '.' . $key, [$value['from'], $value['to']]);
         } elseif (isset($value['from'])) {
-            $builder->where($key, '>=', $value['from']);
+            $builder->where($table . '.' . $key, '>=', $value['from']);
         } elseif (isset($value['to'])) {
-            $builder->where($key, '<=', $value['to']);
+            $builder->where($table . '.' . $key, '<=', $value['to']);
         } elseif (isset($value['orderBy']) && in_array($value['orderBy'], ['asc', 'desc'])) {
-            if ($value['orderBy'] == 'desc') $builder->orderBy($key, $value['orderBy']);
+            if ($value['orderBy'] == 'desc') $builder->orderBy($table . '.' . $key, $value['orderBy']);
             else $builder->orderBy($key);
         }
     }
 
     private function keyValueFilter(Builder $builder, string $key, string $value): void
     {
+        $table = $this->getTableName($builder);
+
         if (in_array($value, ['null', 'today', 'past', 'future'])) {
-            if ($value === 'null') $builder->where($key, null);
-            elseif ($value === 'today') $builder->whereDate($key, date('Y-m-d'));
+            if ($value === 'null') $builder->where($table . '.' . $key, null);
+            elseif ($value === 'today') $builder->whereDate($table . '.' . $key, date('Y-m-d'));
             elseif ($value === 'future') $this->arrayParamsFilter($builder, $key, ['from' => date('Y-m-d')]);
             elseif ($value === 'past') $this->arrayParamsFilter($builder, $key, ['to' => date('Y-m-d')]);
         } else {
@@ -111,13 +128,26 @@ trait Filterable
 
             if (count($values) === 1) {
                 if (is_numeric($value)) {
-                    $builder->where($key, $value);
+                    $builder->where($table . '.' . $key, $value);
                 } else {
-                    $builder->where($key, 'like', "%$value%");
+                    $builder->where($table . '.' . $key, 'like', "%$value%");
                 }
             } else {
-                $builder->whereIn($key, $values);
+                $builder->whereIn($table . '.' . $key, $values);
             }
         }
+    }
+
+    private function relationshipFilter(Builder $builder, string $relationship, array $filters)
+    {
+        $builder->whereHas($relationship, function ($query) use ($filters) {
+            $this->rawParams($filters)->filter($query);
+        });
+    }
+
+    private function getTableName($object): string
+    {
+        if ($object instanceof Builder) return $object->getModel()->getTable();
+        elseif ($object instanceof Model) return $object->getTable();
     }
 }

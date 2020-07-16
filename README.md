@@ -55,9 +55,14 @@ https://yoursite.com/path?price[orderBy]=asc
 https://yoursite.com/path?with=metas,tags
 https://yoursite.com/path?data->key=value // to filter json column
 https://yoursite.com/path?data__key=value // to filter json column
+https://yoursite.com/path?users[id]=1 // to filter relationships
 ```
 
 As you can see you can combine parameters in the request (order of parameters is doesn't matter).
+
+## Release notes
+
+2.00 - model relationships filtering.
 
 ## License
 
