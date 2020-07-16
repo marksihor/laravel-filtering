@@ -28,10 +28,11 @@ trait Filterable
         $queryParams = array_merge(request()->all(), $this->rawParams);
 
         foreach ($queryParams as $key => $value) {
-            if (strpos($key, '->') !== false) {
-                $column = strtok($key, '->');
+            if (strpos($key, '->') !== false || strpos($key, '__') !== false) {
+                $delimiter = strpos($key, '->') !== false ? '->' : '__';
+                $column = strtok($key, $delimiter);
                 if ($this->canFilterColumn($model, $column, $filterableColumns)) {
-                    if ($value) $this->keyValueFilter($builder, $key, $value);
+                    if (is_string($value)) $this->keyValueFilter($builder, str_replace($delimiter, '->', $key), $value);
                 }
             } elseif ($key === 'with') {
                 $this->withRelations($builder, $value);
