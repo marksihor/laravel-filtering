@@ -28,7 +28,9 @@ trait Filterable
         $queryParams = array_merge(request()->all(), $this->rawParams);
 
         foreach ($queryParams as $key => $value) {
-            if (
+            if ($key === 'with') {
+                $this->withRelations($builder, $value);
+            } elseif (
                 $this->isColumnExist($model, $key) &&
                 (
                     !$filterableColumns ||
@@ -54,6 +56,22 @@ trait Filterable
     private function isColumnExist(Model $model, string $column): bool
     {
         return Schema::hasColumn($model->getTable(), $column);
+    }
+
+    private function withRelations($query, $relations)
+    {
+        $model = $query->getModel();
+        foreach (explode(',', $relations) as $relation) {
+            if (
+                (!isset($model::$publicRelations) || in_array($relation, $model::$publicRelations)) &&
+                method_exists($model, $relation)
+            ) {
+                $query = $query->with([$relation => function ($query) {
+                    $model = $query->getModel();
+                    $query->select($model::$publicFields ?? '*');
+                }]);
+            }
+        }
     }
 
     private function arrayParamsFilter(Builder $builder, string $key, array $value): void
