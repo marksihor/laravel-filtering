@@ -53,6 +53,7 @@ https://yoursite.com/path?price=100,75&status=paid
 https://yoursite.com/path?price[from]=100&price[to]=500
 https://yoursite.com/path?price[orderBy]=asc
 https://yoursite.com/path?with=metas,tags
+https://yoursite.com/path?data->key=valu
 ```
 
 As you can see you can combine parameters in the request (order of parameters is doesn't matter).

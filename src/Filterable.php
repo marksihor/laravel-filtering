@@ -28,22 +28,32 @@ trait Filterable
         $queryParams = array_merge(request()->all(), $this->rawParams);
 
         foreach ($queryParams as $key => $value) {
-            if ($key === 'with') {
+            if (strpos($key, '->') !== false) {
+                $column = strtok($key, '->');
+                if ($this->canFilterColumn($model, $column, $filterableColumns)) {
+                    if ($value) $this->keyValueFilter($builder, $key, $value);
+                }
+            } elseif ($key === 'with') {
                 $this->withRelations($builder, $value);
-            } elseif (
-                $this->isColumnExist($model, $key) &&
-                (
-                    !$filterableColumns ||
-                    key_exists($key, $this->rawParams) ||
-                    in_array($key, $filterableColumns)
-                )
-            ) {
-                if (is_array($value)) $this->arrayParamsFilter($builder, $key, $value);
-                else $this->keyValueFilter($builder, $key, $value);
+            } elseif ($this->canFilterColumn($model, $key, $filterableColumns)) {
+                if (is_array($value))
+                    $this->arrayParamsFilter($builder, $key, $value);
+                else
+                    $this->keyValueFilter($builder, $key, $value);
             }
         }
 
         return $object;
+    }
+
+    private function canFilterColumn($model, string $column, $filterableColumns): bool
+    {
+        return $this->isColumnExist($model, $column) &&
+            (
+                !$filterableColumns ||
+                key_exists($column, $this->rawParams) ||
+                in_array($column, $filterableColumns)
+            );
     }
 
     public function rawParams(array $params)
