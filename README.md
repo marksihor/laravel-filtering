@@ -2,6 +2,8 @@
 
 The package allows you to make model filter by user request in 1 line, you just need to use the MarksIhor\LaravelFiltering\Filterable trait in your Controller.php (or whatever your controller you need the filter to work).
 
+Since 2.00 filter by model relationships.
+
 ## Installing
 
 ```shell
@@ -10,7 +12,7 @@ $ composer require marksihor/laravel-filtering -vvv
 
 ## Usage
 
-### Use trait on Controller
+### Use the Filterable trait in your Controller
 
 ```php
 <?php
@@ -40,7 +42,7 @@ $collection = $this->filterable(['status','paid'])->filter(Model::query())->get(
 
 ```php
 
-public $filterable = []; // to define columns that use wil be able to filter
+public $filterable = []; // to define columns that you wil be able to filter (not required)
 
 ```
 
