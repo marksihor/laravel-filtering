@@ -11,6 +11,7 @@ trait Filterable
 {
     private $rawParams = [];
     private $filterable = null;
+    private $filterablePivot = null;
     private $prefix = '';
 
     public function filterable(array $columns)
@@ -25,7 +26,7 @@ trait Filterable
         $builder = $object instanceof Builder ? $object : $object->getQuery();
         $model = $builder->getModel();
         $filterableColumns = $this->filterable ?? $model::$filterable ?? null;
-
+        $filterablePivotColumns = $this->filterablePivot ?? $model::$filterablePivot ?? [];
         $queryParams = array_merge(request()->all(), $this->rawParams);
 
         foreach ($queryParams as $key => $value) {
@@ -50,6 +51,12 @@ trait Filterable
                 }
             } elseif (!$this->isColumnExist($model, $key) && $this->isRelationshipExists($model, $key)) {
                 $this->relationshipFilter($builder, $key, $value);
+            } elseif (
+                !$this->isColumnExist($model, $key) &&
+                key_exists($key, $filterablePivotColumns) &&
+                $this->isRelationshipExists($model, $filterablePivotColumns[$key])
+            ) {
+                $this->pivotColumnFilter($builder, $key, $value, $filterablePivotColumns[$key]);
             }
         }
 
@@ -142,6 +149,17 @@ trait Filterable
     {
         $builder->whereHas($relationship, function ($query) use ($filters) {
             $this->rawParams($filters)->filter($query);
+        });
+    }
+
+    private function pivotColumnFilter(Builder $builder, string $key, string $value, string $relation)
+    {
+        $builder->whereHas($relation, function ($query) use ($key, $value) {
+            if (is_numeric($value)) {
+                $query->where($key, $value);
+            } else {
+                $query->where($key, 'like', "%$value%");
+            }
         });
     }
 
