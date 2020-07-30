@@ -42,11 +42,13 @@ $collection = $this->filterable(['status','paid'])->filter(Model::query())->get(
 
 ```php
 
-public static $filterable = []; // to define columns that you wil be able to filter (not required)
+public static $filterable = []; // to define columns that you will be able to filter (not required)
+
+public static $filterableRelations = []; // to define relations that you will be able to filter (otherwise it won't work)
 
 public static $filterablePivot = [
         'role_id' => 'sites',
-    ]; // key = key, value = relation name (to filter by pivot table columns)
+    ]; // key = key, value = relation name (to filter by pivot table columns, otherwise it won't work)
 ```
 
 ### Usage examples (in url)

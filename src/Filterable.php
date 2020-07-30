@@ -12,11 +12,26 @@ trait Filterable
     private $rawParams = [];
     private $filterable = null;
     private $filterablePivot = null;
+    private $filterableRelations = null;
     private $prefix = '';
 
     public function filterable(array $columns)
     {
         $this->filterable = $columns;
+
+        return $this;
+    }
+
+    public function filterablePivot(array $columns)
+    {
+        $this->filterablePivot = $columns;
+
+        return $this;
+    }
+
+    public function filterableRelations(array $relations)
+    {
+        $this->filterableRelations = $relations;
 
         return $this;
     }
@@ -27,6 +42,7 @@ trait Filterable
         $model = $builder->getModel();
         $filterableColumns = $this->filterable ?? $model::$filterable ?? null;
         $filterablePivotColumns = $this->filterablePivot ?? $model::$filterablePivot ?? [];
+        $filterableRelations = $this->filterableRelations ?? $model::$filterableRelations ?? [];
         $queryParams = array_merge(request()->all(), $this->rawParams);
 
         foreach ($queryParams as $key => $value) {
@@ -49,7 +65,11 @@ trait Filterable
                 } else {
                     $this->keyValueFilter($builder, $key, $value);
                 }
-            } elseif (!$this->isColumnExist($model, $key) && $this->isRelationshipExists($model, $key)) {
+            } elseif (
+                !$this->isColumnExist($model, $key) &&
+                $this->isRelationshipExists($model, $key) &&
+                in_array($key, $filterableRelations)
+            ) {
                 $this->relationshipFilter($builder, $key, $value);
             } elseif (
                 !$this->isColumnExist($model, $key) &&
