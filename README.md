@@ -63,6 +63,7 @@ https://yoursite.com/path?with=metas,tags
 https://yoursite.com/path?data->key=value // to filter json column
 https://yoursite.com/path?data__key=value // to filter json column
 https://yoursite.com/path?users[id]=1 // to filter relationships
+https://yoursite.com/path?fields[accounts]=id,user_id,link // to select column from related table when use ?with=accounts, note that the relational column should be in the list
 ```
 
 As you can see you can combine parameters in the request (order of parameters is doesn't matter).

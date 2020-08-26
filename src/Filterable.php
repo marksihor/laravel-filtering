@@ -14,6 +14,7 @@ trait Filterable
     private $filterablePivot = null;
     private $filterableRelations = null;
     private $prefix = '';
+    private $queryParams = [];
 
     public function filterable(array $columns)
     {
@@ -43,7 +44,7 @@ trait Filterable
         $filterableColumns = $this->filterable ?? $model::$filterable ?? null;
         $filterablePivotColumns = $this->filterablePivot ?? $model::$filterablePivot ?? [];
         $filterableRelations = $this->filterableRelations ?? $model::$filterableRelations ?? [];
-        $queryParams = array_merge(request()->all(), $this->rawParams);
+        $this->queryParams = $queryParams = array_merge(request()->all(), $this->rawParams);
 
         foreach ($queryParams as $key => $value) {
             if (strpos($key, '->') !== false || strpos($key, '__') !== false) {
@@ -117,9 +118,16 @@ trait Filterable
         $model = $query->getModel();
         foreach (explode(',', $relations) as $relation) {
             if ($this->isRelationshipExists($model, $relation)) {
-                $query = $query->with([$relation => function ($query) {
+                $requestedFields = $this->queryParams['fields'][$relation] ?? null;
+                $requestedFields = $requestedFields ? explode(',', $requestedFields) : $requestedFields;
+
+                $query = $query->with([$relation => function ($query) use ($requestedFields) {
                     $model = $query->getModel();
-                    $query->select($model::$publicFields ?? '*');
+                    $publicFields = $model::$publicFields ?? null;
+
+                    if ($requestedFields && $publicFields) $fields = array_intersect($publicFields, $requestedFields);
+
+                    $query->select($fields ?? $publicFields ?? $requestedFields ?? '*');
                 }]);
             }
         }
