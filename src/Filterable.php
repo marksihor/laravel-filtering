@@ -59,6 +59,9 @@ trait Filterable
             } elseif ($key === 'with') {
                 // to load specified related models
                 $this->withRelations($builder, $value);
+            } elseif ($key === 'select' && isset($value[$model->getTable()])) {
+                // to select specific fields
+                $builder->select(explode(',', $value[$model->getTable()]));
             } elseif ($this->canFilterColumn($model, $key, $filterableColumns)) {
                 // key value filter
                 if (is_array($value)) {
@@ -118,7 +121,7 @@ trait Filterable
         $model = $query->getModel();
         foreach (explode(',', $relations) as $relation) {
             if ($this->isRelationshipExists($model, $relation)) {
-                $requestedFields = $this->queryParams['fields'][$relation] ?? null;
+                $requestedFields = $this->queryParams['select'][$relation] ?? null;
                 $requestedFields = $requestedFields ? explode(',', $requestedFields) : $requestedFields;
 
                 $query = $query->with([$relation => function ($query) use ($requestedFields) {
