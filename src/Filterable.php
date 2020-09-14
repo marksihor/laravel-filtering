@@ -56,6 +56,8 @@ trait Filterable
                         $this->keyValueFilter($builder, str_replace($delimiter, '->', $key), $value);
                     }
                 }
+            } elseif ($key === 'deleted' && $value == 1){
+                $builder->onlyTrashed();
             } elseif ($key === 'with') {
                 // to load specified related models
                 $this->withRelations($builder, $value);

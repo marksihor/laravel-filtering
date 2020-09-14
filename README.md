@@ -65,6 +65,7 @@ https://yoursite.com/path?data__key=value // to filter json column
 https://yoursite.com/path?users[id]=1 // to filter relationships
 https://yoursite.com/path?select[accounts]=id,user_id,link // to select column from related table when use ?with=accounts, note that the relational column should be in the list
 https://yoursite.com/path?select[current_model_table_name]=id,name // to select column from curent model
+https://yoursite.com/path?deleted=1 // get only softDeleted records
 ```
 
 As you can see you can combine parameters in the request (order of parameters is doesn't matter).
