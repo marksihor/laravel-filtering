@@ -61,6 +61,12 @@ trait Filterable
             } elseif ($key === 'with') {
                 // to load specified related models
                 $this->withRelations($builder, $value);
+            } elseif ($key === 'withCount'){
+                // to count specified related models
+                $this->withCountRelations($builder, $value);
+            } elseif ($key === 'has'){
+                // where specified relations > 0
+                $this->hasRelations($builder, $value);
             } elseif ($key === 'select' && isset($value[$model->getTable()])) {
                 // to select specific fields
                 $builder->select(explode(',', $value[$model->getTable()]));
@@ -134,6 +140,26 @@ trait Filterable
 
                     $query->select($fields ?? $publicFields ?? $requestedFields ?? '*');
                 }]);
+            }
+        }
+    }
+
+    private function withCountRelations($query, $relations)
+    {
+        $model = $query->getModel();
+        foreach (explode(',', $relations) as $relation) {
+            if ($this->isRelationshipExists($model, $relation)) {
+                $query->withCount($relation);
+            }
+        }
+    }
+
+    private function hasRelations($query, $relations)
+    {
+        $model = $query->getModel();
+        foreach (explode(',', $relations) as $relation) {
+            if ($this->isRelationshipExists($model, $relation)) {
+                $query->has($relation);
             }
         }
     }
