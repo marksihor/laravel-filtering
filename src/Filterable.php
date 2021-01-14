@@ -184,8 +184,9 @@ trait Filterable
     {
         $table = $this->getTableName($builder);
 
-        if (in_array($value, ['null', 'today', 'past', 'future'])) {
-            if ($value === 'null') $builder->where($table . '.' . $key, null);
+        if (in_array($value, ['null', 'today', 'past', 'future', 'notNull'])) {
+            if ($value === 'null') $builder->whereNull($table . '.' . $key);
+            elseif ($value === 'notNull') $builder->whereNotNull($table . '.' . $key);
             elseif ($value === 'today') $builder->whereDate($table . '.' . $key, date('Y-m-d'));
             elseif ($value === 'future') $this->arrayParamsFilter($builder, $key, ['from' => date('Y-m-d')]);
             elseif ($value === 'past') $this->arrayParamsFilter($builder, $key, ['to' => date('Y-m-d')]);

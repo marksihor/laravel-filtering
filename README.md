@@ -68,6 +68,7 @@ https://yoursite.com/path?select[current_model_table_name]=id,name // to select 
 https://yoursite.com/path?deleted=1 // get only softDeleted records
 https://yoursite.com/path?withCount=relationName // get count of specified relation
 https://yoursite.com/path?has=relationName // get only records that has specified relations (1 or more)
+https://yoursite.com/path?column1=null&column2=notNull // for null and not null values
 ```
 
 As you can see you can combine parameters in the request (order of parameters is doesn't matter).
