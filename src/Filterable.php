@@ -4,7 +4,6 @@ namespace MarksIhor\LaravelFiltering;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 
 trait Filterable
@@ -15,6 +14,7 @@ trait Filterable
     private $filterableRelations = null;
     private $prefix = '';
     private $queryParams = [];
+    protected $tempParams = null;
 
     public function filterable(array $columns)
     {
@@ -46,7 +46,8 @@ trait Filterable
         $filterableRelations = $this->filterableRelations ?? $model::$filterableRelations ?? [];
         $this->queryParams = $queryParams = array_merge(request()->all(), $this->rawParams);
 
-        foreach ($queryParams as $key => $value) {
+        $params = $this->tempParams ?: $queryParams;
+        foreach ($params as $key => $value) {
             if (strpos($key, '->') !== false || strpos($key, '__') !== false) {
                 // to filter json columns
                 $delimiter = strpos($key, '->') !== false ? '->' : '__';
@@ -56,15 +57,15 @@ trait Filterable
                         $this->keyValueFilter($builder, str_replace($delimiter, '->', $key), $value);
                     }
                 }
-            } elseif ($key === 'deleted' && $value == 1){
+            } elseif ($key === 'deleted' && $value == 1) {
                 $builder->onlyTrashed();
             } elseif ($key === 'with') {
                 // to load specified related models
                 $this->withRelations($builder, $value);
-            } elseif ($key === 'withCount'){
+            } elseif ($key === 'withCount') {
                 // to count specified related models
                 $this->withCountRelations($builder, $value);
-            } elseif ($key === 'has'){
+            } elseif ($key === 'has') {
                 // where specified relations > 0
                 $this->hasRelations($builder, $value);
             } elseif ($key === 'select' && isset($value[$model->getTable()])) {
@@ -82,7 +83,9 @@ trait Filterable
                 $this->isRelationshipExists($model, $key) &&
                 in_array($key, $filterableRelations)
             ) {
-                $this->relationshipFilter($builder, $key, $value);
+                if ($value) {
+                    $this->relationshipFilter($builder, $key, $value);
+                }
             } elseif (
                 !$this->isColumnExist($model, $key) &&
                 key_exists($key, $filterablePivotColumns) &&
@@ -91,6 +94,7 @@ trait Filterable
                 $this->pivotColumnFilter($builder, $key, $value, $filterablePivotColumns[$key]);
             }
         }
+        $this->tempParams = null;
 
         return $object;
     }
@@ -108,6 +112,13 @@ trait Filterable
     public function rawParams(array $params)
     {
         $this->rawParams = $params;
+
+        return $this;
+    }
+
+    public function tempParams(array $params)
+    {
+        $this->tempParams = $params;
 
         return $this;
     }
@@ -180,11 +191,13 @@ trait Filterable
         }
     }
 
-    private function keyValueFilter(Builder $builder, string $key, string $value): void
+    private function keyValueFilter(Builder $builder, string $key, ?string $value): void
     {
         $table = $this->getTableName($builder);
 
-        if (in_array($value, ['null', 'today', 'past', 'future', 'notNull'])) {
+        if ($value === null) {
+            $builder->whereNull($table . '.' . $key);
+        } elseif (in_array($value, ['null', 'today', 'past', 'future', 'notNull'])) {
             if ($value === 'null') $builder->whereNull($table . '.' . $key);
             elseif ($value === 'notNull') $builder->whereNotNull($table . '.' . $key);
             elseif ($value === 'today') $builder->whereDate($table . '.' . $key, date('Y-m-d'));
@@ -208,7 +221,7 @@ trait Filterable
     private function relationshipFilter(Builder $builder, string $relationship, array $filters)
     {
         $builder->whereHas($relationship, function ($query) use ($filters) {
-            $this->rawParams($filters)->filter($query);
+            $this->tempParams($filters)->filter($query);
         });
     }
 
