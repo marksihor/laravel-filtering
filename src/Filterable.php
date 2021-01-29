@@ -53,7 +53,9 @@ trait Filterable
                 $delimiter = strpos($key, '->') !== false ? '->' : '__';
                 $column = strtok($key, $delimiter);
                 if ($this->canFilterColumn($model, $column, $filterableColumns)) {
-                    if (is_string($value)) {
+                    if (is_array($value)) {
+                        $this->arrayParamsFilter($builder, str_replace($delimiter, '->', $key), $value);
+                    } else {
                         $this->keyValueFilter($builder, str_replace($delimiter, '->', $key), $value);
                     }
                 }
