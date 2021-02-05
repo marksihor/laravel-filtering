@@ -72,7 +72,10 @@ trait Filterable
                 $this->hasRelations($builder, $value);
             } elseif ($key === 'select' && isset($value[$model->getTable()])) {
                 // to select specific fields
-                $builder->select(explode(',', $value[$model->getTable()]));
+                $selectColumns = array_filter(explode(',', $value[$model->getTable()]), function ($item) use ($model) {
+                    return $this->isColumnExist($model, $item);
+                });
+                $builder->select($selectColumns);
             } elseif ($this->canFilterColumn($model, $key, $filterableColumns)) {
                 // key value filter
                 if (is_array($value)) {
