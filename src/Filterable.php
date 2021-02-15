@@ -142,21 +142,34 @@ trait Filterable
 
     private function withRelations($query, $relations)
     {
-        $model = $query->getModel();
         foreach (explode(',', $relations) as $relation) {
-            if ($this->isRelationshipExists($model, $relation)) {
-                $requestedFields = $this->queryParams['select'][$relation] ?? null;
-                $requestedFields = $requestedFields ? explode(',', $requestedFields) : $requestedFields;
+            $nested = explode('.', $relation);
+            $relation = $nested[0];
+            $subrelations = array_slice($nested, 1);
+            $this->processRelations($query, $relation, $subrelations);
+        }
+    }
 
-                $query = $query->with([$relation => function ($query) use ($requestedFields) {
-                    $model = $query->getModel();
-                    $publicFields = $model::$publicFields ?? null;
+    private function processRelations($query, $relation, ?array $subrelations = [])
+    {
+        $model = $query->getModel();
 
-                    if ($requestedFields && $publicFields) $fields = array_intersect($publicFields, $requestedFields);
+        if ($this->isRelationshipExists($model, $relation)) {
+            $requestedFields = $this->queryParams['select'][$relation] ?? null;
+            $requestedFields = $requestedFields ? explode(',', $requestedFields) : $requestedFields;
 
-                    $query->select($fields ?? $publicFields ?? $requestedFields ?? '*');
-                }]);
-            }
+            $query = $query->with([$relation => function ($query) use ($requestedFields, $subrelations) {
+                $model = $query->getModel();
+                $publicFields = $model::$publicFields ?? null;
+
+                if ($requestedFields && $publicFields) $fields = array_intersect($publicFields, $requestedFields);
+
+                $query->select($fields ?? $publicFields ?? $requestedFields ?? '*');
+
+                if (count($subrelations)) {
+                    $this->processRelations($query, $subrelations[0], array_slice($subrelations, 1));
+                }
+            }]);
         }
     }
 
