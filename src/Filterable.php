@@ -245,13 +245,20 @@ trait Filterable
 
     private function pivotColumnFilter(Builder $builder, string $key, string $value, string $relation)
     {
-        $builder->whereHas($relation, function ($query) use ($key, $value) {
+        $pivotTable = $this->getPivotTableName($builder->getModel(), $relation);
+        $prefix = $pivotTable ? $pivotTable . '.' : '';
+        $builder->whereHas($relation, function ($query) use ($key, $value, $prefix) {
             if (is_numeric($value)) {
-                $query->where($key, $value);
+                $query->where($prefix . $key, $value);
             } else {
-                $query->where($key, 'like', "%$value%");
+                $query->where($prefix . $key, 'like', "%$value%");
             }
         });
+    }
+
+    private function getPivotTableName(Model $model, string $relation): string
+    {
+        return $model->{$relation}()->getTable();
     }
 
     private function getTableName($object): string
