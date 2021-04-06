@@ -47,6 +47,19 @@ trait Filterable
         $this->queryParams = $queryParams = array_merge(request()->all(), $this->rawParams);
 
         $params = $this->tempParams ?: $queryParams;
+
+        if (
+            key_exists('orderBy', $params) &&
+            $this->canFilterColumn($model, $params['orderBy'], $filterableColumns) ||
+            (
+                key_exists($params['orderBy'], $filterablePivotColumns) &&
+                $this->isRelationshipExists($model, $filterablePivotColumns[$params['orderBy']])
+            )
+        ) {
+            $direction = $params['order'] ?? 'asc';
+            $builder->orderBy($params['orderBy'], in_array($direction, ['asc', 'desc']) ? $direction : 'asc');
+        }
+
         foreach ($params as $key => $value) {
             if (strpos($key, '->') !== false || strpos($key, '__') !== false) {
                 // to filter json columns
