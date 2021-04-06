@@ -50,10 +50,10 @@ trait Filterable
 
         if (
             key_exists('orderBy', $params) &&
-            $this->canFilterColumn($model, $params['orderBy'], $filterableColumns) ||
             (
-                key_exists($params['orderBy'], $filterablePivotColumns) &&
-                $this->isRelationshipExists($model, $filterablePivotColumns[$params['orderBy']])
+                $this->canFilterColumn($model, $params['orderBy'], $filterableColumns) ||
+                (key_exists($params['orderBy'], $filterablePivotColumns) &&
+                    $this->isRelationshipExists($model, $filterablePivotColumns[$params['orderBy']]))
             )
         ) {
             $direction = $params['order'] ?? 'asc';
