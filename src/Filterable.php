@@ -96,7 +96,11 @@ trait Filterable
                 key_exists($key, $filterablePivotColumns) &&
                 $this->isRelationshipExists($model, $filterablePivotColumns[$key])
             ) {
-                $this->pivotColumnFilter($builder, $key, $value, $filterablePivotColumns[$key]);
+                if (is_array($value)) {
+                    $this->arrayParamsFilter($builder, $key, $value, $filterablePivotColumns[$key]);
+                } else {
+                    $this->pivotColumnFilter($builder, $key, $value, $filterablePivotColumns[$key]);
+                }
             }
         }
         $this->tempParams = null;
@@ -193,18 +197,23 @@ trait Filterable
         }
     }
 
-    private function arrayParamsFilter(Builder $builder, string $key, array $value): void
+    private function arrayParamsFilter(Builder $builder, string $key, array $value, ?string $relation = null): void
     {
         $table = $this->getTableName($builder);
+        if ($relation) {
+            $tablePrefix = '';
+        } else {
+            $tablePrefix = "$table.";
+        }
 
         if (isset($value['from'], $value['to'])) {
-            $builder->whereBetween($table . '.' . $key, [$value['from'], $value['to']]);
+            $builder->whereBetween($tablePrefix . $key, [$value['from'], $value['to']]);
         } elseif (isset($value['from'])) {
-            $builder->where($table . '.' . $key, '>=', $value['from']);
+            $builder->where($tablePrefix . $key, '>=', $value['from']);
         } elseif (isset($value['to'])) {
-            $builder->where($table . '.' . $key, '<=', $value['to']);
+            $builder->where($tablePrefix . $key, '<=', $value['to']);
         } elseif (isset($value['orderBy']) && in_array($value['orderBy'], ['asc', 'desc'])) {
-            if ($value['orderBy'] == 'desc') $builder->orderBy($table . '.' . $key, $value['orderBy']);
+            if ($value['orderBy'] == 'desc') $builder->orderBy($tablePrefix . $key, $value['orderBy']);
             else $builder->orderBy($key);
         }
     }
