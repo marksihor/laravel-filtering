@@ -261,7 +261,25 @@ trait Filterable
     private function relationshipFilter(Builder $builder, string $relationship, array $filters)
     {
         $builder->whereHas($relationship, function ($query) use ($filters) {
-            $this->tempParams($filters)->filter($query);
+            $this->tempParams(array_filter($filters, function ($v, $k) {
+                return strpos($k, '.') === false;
+            }, 1))->filter($query);
+
+            // filter nested relationship
+            $arr2 = array_filter($filters, function ($v, $k) {
+                return strpos($k, '.') !== false;
+            }, 1);
+            $filters2 = [];
+            foreach ($arr2 as $k => $v) {
+                $parts = explode('.', $k);
+                $filters2[$parts[0]][$parts[1]] = $v;
+            }
+
+            foreach ($filters2 as $r => $f) {
+                if ($this->isRelationshipExists($query->getModel(), $r)) {
+                    $this->relationshipFilter($query, $r, $f);
+                }
+            }
         });
     }
 
