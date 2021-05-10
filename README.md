@@ -67,7 +67,9 @@ https://yoursite.com/path?select[accounts]=id,user_id,link // to select column f
 https://yoursite.com/path?select[current_model_table_name]=id,name // to select column from curent model
 https://yoursite.com/path?deleted=1 // get only softDeleted records
 https://yoursite.com/path?withCount=relationName // get count of specified relation
+https://yoursite.com/path?withCount[posts][quantity]=2&withCount[posts][status]=completed // get count of specified relation with filters
 https://yoursite.com/path?has=relationName // get only records that has specified relations (1 or more)
+https://yoursite.com/path?has[posts][quantity]=2&withCount[posts][status]=completed // get only records that has specified relations with filters
 https://yoursite.com/path?column1=null&column2=notNull // for null and not null values
 https://yoursite.com/path?tags[name]=tagname // to filter by relationship, the model should have public static $filterableRelations = ['tags'];
 https://yoursite.com/path?order=asc&orderBy=column // new ordering way

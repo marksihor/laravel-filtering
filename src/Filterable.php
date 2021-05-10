@@ -190,22 +190,44 @@ trait Filterable
         }
     }
 
-    private function withCountRelations($query, $relations)
+    private function withCountRelations($query, $value)
     {
         $model = $query->getModel();
-        foreach (explode(',', $relations) as $relation) {
-            if ($this->isRelationshipExists($model, $relation)) {
-                $query->withCount($relation);
+        if (is_string($value)) {
+            $relations = explode(',', $value);
+            foreach ($relations as $relation) {
+                if ($this->isRelationshipExists($model, $relation)) {
+                    $query->withCount($relation);
+                }
+            }
+        } elseif (is_array($value)) {
+            foreach ($value as $relation => $filters) {
+                if ($this->isRelationshipExists($model, $relation)) {
+                    $query->withCount([$relation => function ($query) use ($filters) {
+                        $this->rawParams($filters)->filter($query);
+                    }]);
+                }
             }
         }
     }
 
-    private function hasRelations($query, $relations)
+    private function hasRelations($query, $value)
     {
         $model = $query->getModel();
-        foreach (explode(',', $relations) as $relation) {
-            if ($this->isRelationshipExists($model, $relation)) {
-                $query->has($relation);
+        if (is_string($value)) {
+            $relations = explode(',', $value);
+            foreach (explode(',', $relations) as $relation) {
+                if ($this->isRelationshipExists($model, $relation)) {
+                    $query->has($relation);
+                }
+            }
+        } elseif (is_array($value)) {
+            foreach ($value as $relation => $filters) {
+                if ($this->isRelationshipExists($model, $relation)) {
+                    $query->has([$relation => function ($query) use ($filters) {
+                        $this->rawParams($filters)->filter($query);
+                    }]);
+                }
             }
         }
     }
