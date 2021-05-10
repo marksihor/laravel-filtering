@@ -216,7 +216,7 @@ trait Filterable
         $model = $query->getModel();
         if (is_string($value)) {
             $relations = explode(',', $value);
-            foreach (explode(',', $relations) as $relation) {
+            foreach ($relations as $relation) {
                 if ($this->isRelationshipExists($model, $relation)) {
                     $query->has($relation);
                 }
@@ -224,9 +224,9 @@ trait Filterable
         } elseif (is_array($value)) {
             foreach ($value as $relation => $filters) {
                 if ($this->isRelationshipExists($model, $relation)) {
-                    $query->has([$relation => function ($query) use ($filters) {
+                    $query->whereHas($relation, function ($query) use ($filters) {
                         $this->rawParams($filters)->filter($query);
-                    }]);
+                    });
                 }
             }
         }
