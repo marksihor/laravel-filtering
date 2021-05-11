@@ -247,7 +247,9 @@ trait Filterable
             $builder->where($tablePrefix . $key, '>=', $value['from']);
         } elseif (isset($value['to'])) {
             $builder->where($tablePrefix . $key, '<=', $value['to']);
-        } elseif (isset($value['orderBy']) && in_array($value['orderBy'], ['asc', 'desc'])) {
+        }
+
+        if (isset($value['orderBy']) && in_array($value['orderBy'], ['asc', 'desc'])) {
             if ($value['orderBy'] == 'desc') $builder->orderBy($tablePrefix . $key, $value['orderBy']);
             else $builder->orderBy($key);
         }
