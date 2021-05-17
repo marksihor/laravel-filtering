@@ -159,15 +159,46 @@ trait Filterable
 
     private function withRelations($query, $relations)
     {
-        foreach (explode(',', $relations) as $relation) {
-            $nested = explode('.', $relation);
-            $relation = $nested[0];
-            $subrelations = array_slice($nested, 1);
-            $this->processRelations($query, $relation, $subrelations);
+        $groupedRelations = $this->groupRelations($relations);
+
+        foreach ($groupedRelations as $relation => $subrelations) {
+            $this->processRelations($query, $relation, is_array($subrelations) ? $subrelations : []);
         }
     }
 
-    private function processRelations($query, $relation, ?array $subrelations = [])
+    private function groupRelations(string $data): array
+    {
+        $data = explode(',', $data);
+        $data = array_flip($data);
+        return $this->flattenToMultiDimensional($data);
+    }
+
+    private function flattenToMultiDimensional(array $array, $delimiter = '.'): array
+    {
+        $result = [];
+        foreach ($array as $notations => $value) {
+            // extract keys
+            $keys = explode($delimiter, $notations);
+            // reverse keys for assignments
+            $keys = array_reverse($keys);
+
+            // set initial value
+            $lastVal = $value;
+            foreach ($keys as $key) {
+                // wrap value with key over each iteration
+                $lastVal = [
+                    $key => $lastVal
+                ];
+            }
+
+            // merge result
+            $result = array_merge_recursive($result, $lastVal);
+        }
+
+        return $result;
+    }
+
+    private function processRelations($query, $relation, array $subrelations)
     {
         $model = $query->getModel();
 
@@ -175,7 +206,7 @@ trait Filterable
             $requestedFields = $this->queryParams['select'][$relation] ?? null;
             $requestedFields = $requestedFields ? explode(',', $requestedFields) : $requestedFields;
 
-            $query = $query->with([$relation => function ($query) use ($requestedFields, $subrelations) {
+            $query->with([$relation => function ($query) use ($requestedFields, $subrelations) {
                 $model = $query->getModel();
                 $publicFields = $model::$publicFields ?? null;
 
@@ -184,7 +215,9 @@ trait Filterable
                 $query->select($fields ?? $publicFields ?? $requestedFields ?? '*');
 
                 if (count($subrelations)) {
-                    $this->processRelations($query, $subrelations[0], array_slice($subrelations, 1));
+                    foreach ($subrelations as $relation => $sub) {
+                        $this->processRelations($query, $relation, is_array($sub) ? $sub : []);
+                    }
                 }
             }]);
         }
