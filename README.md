@@ -74,6 +74,7 @@ https://yoursite.com/path?column1=null&column2=notNull // for null and not null 
 https://yoursite.com/path?tags[name]=tagname // to filter by relationship, the model should have public static $filterableRelations = ['tags'];
 https://yoursite.com/path?order=asc&orderBy=column // new ordering way
 https://yoursite.com/path?with=category.siteCategory&category[siteCategory.id]=10&category[id]=7 // filter by relation on relation
+https://yoursite.com/path?whereDoesntHave[categories][id]=2 // filter by relation
 ```
 
 As you can see you can combine parameters in the request (order of parameters is doesn't matter).

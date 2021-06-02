@@ -89,6 +89,17 @@ trait Filterable
                     return $this->isColumnExist($model, $item);
                 });
                 $builder->select($selectColumns);
+            } elseif ($key === 'whereDoesntHave' && is_array($value)) {
+                foreach ($value as $relation => $filters) {
+                    if (
+                        is_array($filters) &&
+                        !$this->isColumnExist($model, $relation) &&
+                        $this->isRelationshipExists($model, $relation) &&
+                        in_array($relation, $filterableRelations)
+                    ) {
+                        $this->relationshipFilter($builder, $relation, $filters, true);
+                    }
+                }
             } elseif ($this->canFilterColumn($model, $key, $filterableColumns)) {
                 // key value filter
                 if (is_array($value)) {
@@ -315,9 +326,11 @@ trait Filterable
         }
     }
 
-    private function relationshipFilter(Builder $builder, string $relationship, array $filters)
+    private function relationshipFilter(Builder $builder, string $relationship, array $filters, ?bool $whereDoesntHave = false)
     {
-        $builder->whereHas($relationship, function ($query) use ($filters) {
+        $method = $whereDoesntHave ? 'whereDoesntHave' : 'whereHas';
+
+        $builder->{$method}($relationship, function ($query) use ($filters) {
             if ($arr1 = array_filter($filters, function ($v, $k) {
                 return strpos($k, '.') === false;
             }, 1)) {
