@@ -37,14 +37,14 @@ trait Filterable
         return $this;
     }
 
-    public function filter($object)
+    public function filter($object, ?array $rawFilterData = null)
     {
         $builder = $object instanceof Builder ? $object : $object->getQuery();
         $model = $builder->getModel();
         $filterableColumns = $this->filterable ?? $model::$filterable ?? null;
         $filterablePivotColumns = $this->filterablePivot ?? $model::$filterablePivot ?? [];
         $filterableRelations = $this->filterableRelations ?? $model::$filterableRelations ?? [];
-        $this->queryParams = $queryParams = array_merge(request()->all(), $this->rawParams);
+        $this->queryParams = $queryParams = $rawFilterData ?: array_merge(request()->all(), $this->rawParams);
 
         $params = $this->tempParams ?: $queryParams;
 
