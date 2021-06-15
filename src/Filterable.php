@@ -44,7 +44,7 @@ trait Filterable
         $filterableColumns = $this->filterable ?? $model::$filterable ?? null;
         $filterablePivotColumns = $this->filterablePivot ?? $model::$filterablePivot ?? [];
         $filterableRelations = $this->filterableRelations ?? $model::$filterableRelations ?? [];
-        $this->queryParams = $queryParams = $rawFilterData ?: array_merge(request()->all(), $this->rawParams);
+        $this->queryParams = $queryParams = is_array($rawFilterData) ? $rawFilterData : array_merge(request()->all(), $this->rawParams);
 
         $params = $this->tempParams ?: $queryParams;
 
