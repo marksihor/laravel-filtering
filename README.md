@@ -1,6 +1,8 @@
 # laravel-filtering
 
-The package allows you to make model filter by user request in 1 line, you just need to use the MarksIhor\LaravelFiltering\Filterable trait in your Controller.php (or whatever your controller you need the filter to work).
+The package allows you to make model filter by user request in 1 line, you just need to use the
+MarksIhor\LaravelFiltering\Filterable trait in your Controller.php (or whatever your controller you need the filter to
+work).
 
 Since 2.00 filter by model relationships.
 
@@ -75,6 +77,7 @@ https://yoursite.com/path?tags[name]=tagname // to filter by relationship, the m
 https://yoursite.com/path?order=asc&orderBy=column // new ordering way
 https://yoursite.com/path?with=category.siteCategory&category[siteCategory.id]=10&category[id]=7 // filter by relation on relation
 https://yoursite.com/path?whereDoesntHave[categories][id]=2 // filter by relation
+https://yoursite.com/path?order=rundom // order by rundom
 ```
 
 As you can see you can combine parameters in the request (order of parameters is doesn't matter).
