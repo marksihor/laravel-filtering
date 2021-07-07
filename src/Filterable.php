@@ -58,6 +58,11 @@ trait Filterable
         ) {
             $direction = $params['order'] ?? 'asc';
             $builder->orderBy($params['orderBy'], in_array($direction, ['asc', 'desc']) ? $direction : 'asc');
+        } elseif (
+            key_exists('order', $params) &&
+            $params['order'] === 'random'
+        ) {
+            $builder->inRandomOrder();
         }
 
         foreach ($params as $key => $value) {
