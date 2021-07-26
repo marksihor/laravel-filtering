@@ -51,6 +51,10 @@ public static $filterableRelations = []; // to define relations that you will be
 public static $filterablePivot = [
         'role_id' => 'sites',
     ]; // key = key, value = relation name (to filter by pivot table columns, otherwise it won't work)
+    
+public static $morphSubRelations = [
+        'vault' => ['billingAddress']
+    ]; // to filter through morph relation, need to specify morph relation sub relations
 ```
 
 ### Usage examples (in url)

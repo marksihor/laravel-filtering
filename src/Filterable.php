@@ -214,15 +214,15 @@ trait Filterable
         return $result;
     }
 
-    private function processRelations($query, $relation, array $subrelations)
+    private function processRelations($query, $relation, array $subRelations, bool $relationshipExists = false)
     {
         $model = $query->getModel();
 
-        if ($this->isRelationshipExists($model, $relation)) {
+        if ($relationshipExists || $this->isRelationshipExists($model, $relation)) {
             $requestedFields = $this->queryParams['select'][$relation] ?? null;
             $requestedFields = $requestedFields ? explode(',', $requestedFields) : $requestedFields;
 
-            $query->with([$relation => function ($query) use ($requestedFields, $subrelations) {
+            $query->with([$relation => function ($query) use ($relation, $requestedFields, $subRelations, $relationshipExists) {
                 $model = $query->getModel();
                 $publicFields = $model::$publicFields ?? null;
 
@@ -230,9 +230,16 @@ trait Filterable
 
                 $query->select($fields ?? $publicFields ?? $requestedFields ?? '*');
 
-                if (count($subrelations)) {
-                    foreach ($subrelations as $relation => $sub) {
-                        $this->processRelations($query, $relation, is_array($sub) ? $sub : []);
+                if (count($subRelations)) {
+                    foreach ($subRelations as $rl => $sub) {
+                        if (
+                            ($model::$morphSubRelations ?? null) &&
+                            key_exists($relation, $model::$morphSubRelations) &&
+                            in_array($rl, $model::$morphSubRelations[$relation])
+                        ) {
+                            $relationshipExists = true;
+                        }
+                        $this->processRelations($query, $rl, is_array($sub) ? $sub : [], $relationshipExists);
                     }
                 }
             }]);
