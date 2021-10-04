@@ -88,6 +88,9 @@ trait Filterable
             } elseif ($key === 'has') {
                 // where specified relations > 0
                 $this->hasRelations($builder, $value);
+            } elseif ($key === 'hasNot') {
+                // where specified relations == 0
+                $this->hasNotRelations($builder, $value);
             } elseif ($key === 'select' && isset($value[$model->getTable()])) {
                 // to select specific fields
                 $selectColumns = array_filter(explode(',', $value[$model->getTable()]), function ($item) use ($model) {
@@ -281,6 +284,27 @@ trait Filterable
             foreach ($value as $relation => $filters) {
                 if ($this->isRelationshipExists($model, $relation)) {
                     $query->whereHas($relation, function ($query) use ($filters) {
+                        $this->rawParams($filters)->filter($query);
+                    });
+                }
+            }
+        }
+    }
+
+    private function hasNotRelations($query, $value)
+    {
+        $model = $query->getModel();
+        if (is_string($value)) {
+            $relations = explode(',', $value);
+            foreach ($relations as $relation) {
+                if ($this->isRelationshipExists($model, $relation)) {
+                    $query->doesntHave($relation);
+                }
+            }
+        } elseif (is_array($value)) {
+            foreach ($value as $relation => $filters) {
+                if ($this->isRelationshipExists($model, $relation)) {
+                    $query->whereDoesntHave($relation, function ($query) use ($filters) {
                         $this->rawParams($filters)->filter($query);
                     });
                 }

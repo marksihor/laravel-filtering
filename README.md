@@ -76,6 +76,8 @@ https://yoursite.com/path?withCount=relationName // get count of specified relat
 https://yoursite.com/path?withCount[posts][quantity]=2&withCount[posts][status]=completed // get count of specified relation with filters
 https://yoursite.com/path?has=relationName // get only records that has specified relations (1 or more)
 https://yoursite.com/path?has[posts][quantity]=2&withCount[posts][status]=completed // get only records that has specified relations with filters
+https://yoursite.com/path?hasNot=relationName // get only records that hasNot
+https://yoursite.com/path?hasNot[posts][quantity]=2 // get only records that hasNot specified relations with filters
 https://yoursite.com/path?column1=null&column2=notNull // for null and not null values
 https://yoursite.com/path?tags[name]=tagname // to filter by relationship, the model should have public static $filterableRelations = ['tags'];
 https://yoursite.com/path?order=asc&orderBy=column // new ordering way
