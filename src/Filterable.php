@@ -227,11 +227,18 @@ trait Filterable
 
             $query->with([$relation => function ($query) use ($relation, $requestedFields, $subRelations, $relationshipExists) {
                 $model = $query->getModel();
+                $table = $model->getTable();
                 $publicFields = $model::$publicFields ?? null;
 
                 if ($requestedFields && $publicFields) $fields = array_intersect($publicFields, $requestedFields);
 
-                $query->select($fields ?? $publicFields ?? $requestedFields ?? '*');
+                $arraySelectFields = $fields ?? $publicFields ?? $requestedFields ?? null;
+                if ($arraySelectFields) {
+                    $arraySelectFields = array_map(function ($item) use ($table) {
+                        return $table . '.' . $item;
+                    }, $arraySelectFields);
+                }
+                $query->select($arraySelectFields ?: '*');
 
                 if (count($subRelations)) {
                     foreach ($subRelations as $rl => $sub) {
