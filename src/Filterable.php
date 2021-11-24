@@ -2,6 +2,7 @@
 
 namespace MarksIhor\LaravelFiltering;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Schema;
@@ -348,10 +349,11 @@ trait Filterable
 
         if ($value === null) {
             $builder->whereNull($table . '.' . $key);
-        } elseif (in_array($value, ['null', 'today', 'past', 'future', 'notNull'])) {
+        } elseif (in_array($value, ['null', 'today', 'past', 'future', 'notNull', 'yesterday'])) {
             if ($value === 'null') $builder->whereNull($table . '.' . $key);
             elseif ($value === 'notNull') $builder->whereNotNull($table . '.' . $key);
             elseif ($value === 'today') $builder->whereDate($table . '.' . $key, date('Y-m-d'));
+            elseif ($value === 'yesterday') $builder->whereDate($table . '.' . $key, Carbon::now()->subDay()->format('Y-m-d'));
             elseif ($value === 'future') $this->arrayParamsFilter($builder, $key, ['from' => date('Y-m-d')]);
             elseif ($value === 'past') $this->arrayParamsFilter($builder, $key, ['to' => date('Y-m-d')]);
         } else {
