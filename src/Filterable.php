@@ -13,6 +13,7 @@ trait Filterable
     private $filterable = null;
     private $filterablePivot = null;
     private $filterableRelations = null;
+    private $allowedRelations = null;
     private $prefix = '';
     private $queryParams = [];
     protected $tempParams = null;
@@ -20,6 +21,18 @@ trait Filterable
     public function filterable(array $columns)
     {
         $this->filterable = $columns;
+
+        return $this;
+    }
+
+    /**
+     * Pass empty array to forbid all relationships
+     * @param array|null $relations
+     * @return $this
+     */
+    public function allowedRelations(?array $relations)
+    {
+        $this->allowedRelations = $relations;
 
         return $this;
     }
@@ -170,6 +183,15 @@ trait Filterable
         return Schema::hasColumn($model->getTable(), $column);
     }
 
+    private function isRelationshipAllowed(string $relationship): bool
+    {
+        if (is_array($this->allowedRelations)) {
+            return in_array($relationship, $this->allowedRelations);
+        }
+
+        return true;
+    }
+
     private function isRelationshipExists(Model $model, string $relation): bool
     {
         return (!isset($model::$publicRelations) ||
@@ -220,40 +242,42 @@ trait Filterable
 
     private function processRelations($query, $relation, array $subRelations, bool $relationshipExists = false)
     {
-        $model = $query->getModel();
+        if ($this->isRelationshipAllowed($relation)) {
+            $model = $query->getModel();
 
-        if ($relationshipExists || $this->isRelationshipExists($model, $relation)) {
-            $requestedFields = $this->queryParams['select'][$relation] ?? null;
-            $requestedFields = $requestedFields ? explode(',', $requestedFields) : $requestedFields;
+            if ($relationshipExists || $this->isRelationshipExists($model, $relation)) {
+                $requestedFields = $this->queryParams['select'][$relation] ?? null;
+                $requestedFields = $requestedFields ? explode(',', $requestedFields) : $requestedFields;
 
-            $query->with([$relation => function ($query) use ($relation, $requestedFields, $subRelations, $relationshipExists) {
-                $model = $query->getModel();
-                $table = $model->getTable();
-                $publicFields = $model::$publicFields ?? null;
+                $query->with([$relation => function ($query) use ($relation, $requestedFields, $subRelations, $relationshipExists) {
+                    $model = $query->getModel();
+                    $table = $model->getTable();
+                    $publicFields = $model::$publicFields ?? null;
 
-                if ($requestedFields && $publicFields) $fields = array_intersect($publicFields, $requestedFields);
+                    if ($requestedFields && $publicFields) $fields = array_intersect($publicFields, $requestedFields);
 
-                $arraySelectFields = $fields ?? $publicFields ?? $requestedFields ?? null;
-                if ($arraySelectFields) {
-                    $arraySelectFields = array_map(function ($item) use ($table) {
-                        return $table . '.' . $item;
-                    }, $arraySelectFields);
-                }
-                $query->select($arraySelectFields ?: '*');
-
-                if (count($subRelations)) {
-                    foreach ($subRelations as $rl => $sub) {
-                        if (
-                            ($model::$morphSubRelations ?? null) &&
-                            key_exists($relation, $model::$morphSubRelations) &&
-                            in_array($rl, $model::$morphSubRelations[$relation])
-                        ) {
-                            $relationshipExists = true;
-                        }
-                        $this->processRelations($query, $rl, is_array($sub) ? $sub : [], $relationshipExists);
+                    $arraySelectFields = $fields ?? $publicFields ?? $requestedFields ?? null;
+                    if ($arraySelectFields) {
+                        $arraySelectFields = array_map(function ($item) use ($table) {
+                            return $table . '.' . $item;
+                        }, $arraySelectFields);
                     }
-                }
-            }]);
+                    $query->select($arraySelectFields ?: '*');
+
+                    if (count($subRelations)) {
+                        foreach ($subRelations as $rl => $sub) {
+                            if (
+                                ($model::$morphSubRelations ?? null) &&
+                                key_exists($relation, $model::$morphSubRelations) &&
+                                in_array($rl, $model::$morphSubRelations[$relation])
+                            ) {
+                                $relationshipExists = true;
+                            }
+                            $this->processRelations($query, $rl, is_array($sub) ? $sub : [], $relationshipExists);
+                        }
+                    }
+                }]);
+            }
         }
     }
 
