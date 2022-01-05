@@ -66,6 +66,8 @@ https://yoursite.com/path?price=100,75&status=paid
 https://yoursite.com/path?price[from]=100&price[to]=500
 https://yoursite.com/path?price[orderBy]=asc
 https://yoursite.com/path?with=metas,tags
+https://yoursite.com/path?id[not_in]=1,3,5
+https://yoursite.com/path?id[in]=1,3,5
 https://yoursite.com/path?data->key=value // to filter json column
 https://yoursite.com/path?data__key=value // to filter json column
 https://yoursite.com/path?users[id]=1 // to filter relationships

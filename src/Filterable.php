@@ -361,6 +361,14 @@ trait Filterable
             $builder->where($tablePrefix . $key, '<=', $value['to']);
         }
 
+        if (isset($value['not_in'])) {
+            $builder->whereNotIn($key, explode(',', $value['not_in']));
+        }
+
+        if (isset($value['in'])) {
+            $builder->whereIn($key, explode(',', $value['in']));
+        }
+
         if (isset($value['orderBy']) && in_array($value['orderBy'], ['asc', 'desc'])) {
             if ($value['orderBy'] == 'desc') $builder->orderBy($tablePrefix . $key, $value['orderBy']);
             else $builder->orderBy($key);
