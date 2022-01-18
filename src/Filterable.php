@@ -308,7 +308,7 @@ trait Filterable
         if (is_string($value)) {
             $relations = explode(',', $value);
             foreach ($relations as $relation) {
-                if ($this->isRelationshipExists($model, $relation)) {
+                if ($this->isRelationshipExists($model, explode('.', $relation)[0])) {
                     $query->has($relation);
                 }
             }

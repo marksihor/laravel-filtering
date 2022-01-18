@@ -77,6 +77,7 @@ https://yoursite.com/path?deleted=1 // get only softDeleted records
 https://yoursite.com/path?withCount=relationName // get count of specified relation
 https://yoursite.com/path?withCount[posts][quantity]=2&withCount[posts][status]=completed // get count of specified relation with filters
 https://yoursite.com/path?has=relationName // get only records that has specified relations (1 or more)
+https://yoursite.com/path?has=relationName.relationOfRelationName // get only records that has specified relations (1 or more)
 https://yoursite.com/path?has[posts][quantity]=2&withCount[posts][status]=completed // get only records that has specified relations with filters
 https://yoursite.com/path?hasNot=relationName // get only records that hasNot
 https://yoursite.com/path?hasNot[posts][quantity]=2 // get only records that hasNot specified relations with filters
