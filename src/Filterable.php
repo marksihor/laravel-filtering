@@ -393,11 +393,12 @@ trait Filterable
             $values = explode(',', $value);
 
             if (count($values) === 1) {
-                if (is_numeric($value)) {
-                    $builder->where($table . '.' . $key, $value);
-                } else {
-                    $builder->where($table . '.' . $key, 'like', "%$value%");
-                }
+//                if (is_numeric($value)) {
+//                    $builder->where($table . '.' . $key, $value);
+//                } else {
+//                    $builder->where($table . '.' . $key, 'like', "%$value%");
+//                }
+                $builder->where($table . '.' . $key, $value);
             } else {
                 $builder->whereIn($table . '.' . $key, $values);
             }
@@ -438,11 +439,12 @@ trait Filterable
         $pivotTable = $this->getPivotTableName($builder->getModel(), $relation);
         $prefix = $pivotTable ? $pivotTable . '.' : '';
         $builder->whereHas($relation, function ($query) use ($key, $value, $prefix) {
-            if (is_numeric($value)) {
-                $query->where($prefix . $key, $value);
-            } else {
-                $query->where($prefix . $key, 'like', "%$value%");
-            }
+//            if (is_numeric($value)) {
+//                $query->where($prefix . $key, $value);
+//            } else {
+//                $query->where($prefix . $key, 'like', "%$value%");
+//            }
+            $query->where($prefix . $key, $value);
         });
     }
 
