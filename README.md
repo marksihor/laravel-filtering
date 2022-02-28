@@ -7,6 +7,7 @@ work).
 Since 2.00 filter by model relationships.
 
 ## Installing
+### Note: it is better to use new filtering package: https://packagist.org/packages/marksihor/laravel-query-filter
 
 ```shell
 $ composer require marksihor/laravel-filtering -vvv
