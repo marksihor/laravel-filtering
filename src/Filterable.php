@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 trait Filterable
 {
@@ -393,12 +394,11 @@ trait Filterable
             $values = explode(',', $value);
 
             if (count($values) === 1) {
-//                if (is_numeric($value)) {
-//                    $builder->where($table . '.' . $key, $value);
-//                } else {
-//                    $builder->where($table . '.' . $key, 'like', "%$value%");
-//                }
-                $builder->where($table . '.' . $key, $value);
+                if (Str::startsWith($value, '%') or Str::endsWith($value, '%')) {
+                    $builder->where($table . '.' . $key, 'like', $value);
+                } else {
+                    $builder->where($table . '.' . $key, '=', $value);
+                }
             } else {
                 $builder->whereIn($table . '.' . $key, $values);
             }
