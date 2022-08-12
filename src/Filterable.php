@@ -382,10 +382,15 @@ trait Filterable
 
         if ($value === null) {
             $builder->whereNull($table . '.' . $key);
-        } elseif (in_array($value, ['null', 'today', 'past', 'future', 'notNull', 'yesterday', 'day_before_yesterday'])) {
+        } elseif (in_array($value, ['null', 'today', 'past', 'future', 'notNull', 'yesterday', 'day_before_yesterday', 'thisMonth', 'thisWeek'])) {
             if ($value === 'null') $builder->whereNull($table . '.' . $key);
             elseif ($value === 'notNull') $builder->whereNotNull($table . '.' . $key);
             elseif ($value === 'today') $builder->whereDate($table . '.' . $key, date('Y-m-d'));
+            elseif ($value === 'thisMonth') $builder->whereMonth($table . '.' . $key, now());
+            elseif ($value === 'thisWeek') $builder->whereBetween($table . '.' . $key, [
+                Carbon::now()->startOfWeek(),
+                Carbon::now()->endOfWeek()
+            ]);
             elseif ($value === 'yesterday') $builder->whereDate($table . '.' . $key, Carbon::now()->subDay()->format('Y-m-d'));
             elseif ($value === 'day_before_yesterday') $builder->whereDate($table . '.' . $key, Carbon::now()->subDays(2)->format('Y-m-d'));
             elseif ($value === 'future') $this->arrayParamsFilter($builder, $key, ['from' => date('Y-m-d')]);
